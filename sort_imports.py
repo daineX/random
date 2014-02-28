@@ -14,6 +14,9 @@ import sys
 
 class ImportWriter(NodeVisitor):
 
+    def __init__(self):
+        self.results = []
+
     def format_name(self, name):
         if name.asname:
             return "{} as {}".format(name.name, name.asname)
@@ -42,12 +45,15 @@ class ImportWriter(NodeVisitor):
         if node.module:
             res = 'from {}{} import '.format(node.level * ".", node.module)
         else:
-            res = 'form {} import '.format(node.level * ".")
+            res = 'from {} import '.format(node.level * ".")
         res += self.format_names(len(res), node.names)
-        print(res)
+        self.results.append(res)
 
     def visit_Import(self, node):
-        print("import {}".format(self.format_names(7, node.names)))
+        self.results.append("import {}".format(self.format_names(7, node.names)))
+
+    def get_result(self):
+        return '\n'.join(self.results)
 
 
 class SortImports(NodeTransformer):
@@ -58,18 +64,17 @@ class SortImports(NodeTransformer):
     def sort_names(self, names):
         return sorted(names, key=lambda x: x.name.lower())
 
-    def visit_ImportFrom(self, node):
+    def sort_names_for_node(self, node):
         node.names = self.sort_names(node.names)
         return node
 
-    def visit_Import(self, node):
-        node.names = self.sort_names(node.names)
-        return node
+    visit_Import = sort_names_for_node
+    visit_ImportFrom = sort_names_for_node
 
     def sort_imports(self, imports):
         def sort_key(node):
             defer_level = 0
-            if hasattr(node, "module"):
+            if hasattr(node, "module") and node.module:
                 for index, module_name in enumerate(self.deferred):
                     if node.module.startswith(module_name):
                         defer_level = index + 1
@@ -96,8 +101,10 @@ class SortImports(NodeTransformer):
 def main(source, deferred):
     parsed = parse(source)
     changed = SortImports(deferred=deferred).visit(parsed)
-    ImportWriter().visit(changed)
+    writer =  ImportWriter()
+    writer.visit(changed)
+    return writer.get_result()
 
 
 if __name__ == "__main__":
-    main(sys.stdin.read(), sys.argv[1:])
+    print(main(sys.stdin.read(), sys.argv[1:]))
