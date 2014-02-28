@@ -1,13 +1,16 @@
-#!//usr/bin/env python
+#!/usr/bin/env python
+from __future__ import unicode_literals, print_function
+
 from ast import (
-    parse,
     Import,
     ImportFrom,
+    Module,
     NodeTransformer,
     NodeVisitor,
-    Module
+    parse
 )
 import sys
+
 
 class ImportWriter(NodeVisitor):
 
@@ -23,12 +26,14 @@ class ImportWriter(NodeVisitor):
     def format_names_multiple_lines(self, formatted_names):
         res = "(\n"
         res += ",\n".join("    {}".format(name) for name in formatted_names)
-        res +="\n)"
+        res += "\n)"
         return res
 
     def format_names(self, initial_length, names):
         formatted_names = [self.format_name(name) for name in names]
-        if initial_length + sum(len(formatted_name) + 2 for formatted_name in formatted_names) > 80:
+        if (initial_length + sum(
+                len(formatted_name) + 2
+                for formatted_name in formatted_names) > 80):
             return self.format_names_multiple_lines(formatted_names)
         else:
             return self.format_names_single_line(formatted_names)
@@ -39,10 +44,10 @@ class ImportWriter(NodeVisitor):
         else:
             res = 'form {} import '.format(node.level * ".")
         res += self.format_names(len(res), node.names)
-        print res
+        print(res)
 
     def visit_Import(self, node):
-        print "import {}".format(self.format_names(7, node.names))
+        print("import {}".format(self.format_names(7, node.names)))
 
 
 class SortImports(NodeTransformer):
@@ -87,10 +92,12 @@ class SortImports(NodeTransformer):
         sorted_imports = self.sort_imports(imports)
         return Module(body=sorted_imports)
 
+
 def main(source, deferred):
     parsed = parse(source)
     changed = SortImports(deferred=deferred).visit(parsed)
     ImportWriter().visit(changed)
+
 
 if __name__ == "__main__":
     main(sys.stdin.read(), sys.argv[1:])
