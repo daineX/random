@@ -1,4 +1,3 @@
-from textwrap import dedent
 from unittest import TestCase
 
 from sort_imports import main
