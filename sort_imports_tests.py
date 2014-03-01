@@ -12,8 +12,12 @@ from wsgiref.handlers import CGIHandler, BaseCGIHandler, SimpleHandler
 from ast import Expr, parse, Import, ImportFrom, NodeTransformer, NodeVisitor, Module
 from ..base import spam, eggs, foobar
 from .. import bla
+import os as os_mod
+from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
 """
         expected_output = """from __future__ import absolute_import
+from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
+import os as os_mod
 import sys
 from ast import (
     Expr,

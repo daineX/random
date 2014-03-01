@@ -36,16 +36,14 @@ class ImportWriter(NodeVisitor):
         formatted_names = [self.format_name(name) for name in names]
         if (initial_length + sum(
                 len(formatted_name) + 2
-                for formatted_name in formatted_names) > 80):
+                for formatted_name in formatted_names) > 81):
             return self.format_names_multiple_lines(formatted_names)
         else:
             return self.format_names_single_line(formatted_names)
 
     def visit_ImportFrom(self, node):
-        if node.module:
-            res = 'from {}{} import '.format(node.level * ".", node.module)
-        else:
-            res = 'from {} import '.format(node.level * ".")
+        res = 'from {level}{module} import '.format(level=node.level * ".",
+                                                    module=node.module or '')
         res += self.format_names(len(res), node.names)
         self.results.append(res)
 
