@@ -27,10 +27,8 @@ class ImportWriter(NodeVisitor):
         return ', '.join(formatted_names)
 
     def format_names_multiple_lines(self, formatted_names):
-        res = "(\n"
-        res += ",\n".join("    {}".format(name) for name in formatted_names)
-        res += "\n)"
-        return res
+        names_lines = ",\n".join("    {}".format(name) for name in formatted_names)
+        return "(\n{}\n)".format(names_lines)
 
     def format_names(self, initial_length, names):
         formatted_names = [self.format_name(name) for name in names]
@@ -42,10 +40,10 @@ class ImportWriter(NodeVisitor):
             return self.format_names_single_line(formatted_names)
 
     def visit_ImportFrom(self, node):
-        res = 'from {level}{module} import '.format(level=node.level * ".",
-                                                    module=node.module or '')
-        res += self.format_names(len(res), node.names)
-        self.results.append(res)
+        imports = 'from {level}{module} import '.format(level=node.level * ".",
+                                                        module=node.module or '')
+        names = self.format_names(len(imports), node.names)
+        self.results.append("{}{}".format(imports, names))
 
     def visit_Import(self, node):
         self.results.append("import {}".format(self.format_names(7, node.names)))
