@@ -14,9 +14,6 @@ import sys
 
 class ImportWriter(NodeVisitor):
 
-    def __init__(self):
-        self.results = []
-
     def format_name(self, name):
         if name.asname:
             return "{} as {}".format(name.name, name.asname)
@@ -43,13 +40,13 @@ class ImportWriter(NodeVisitor):
         imports = 'from {level}{module} import '.format(level=node.level * ".",
                                                         module=node.module or '')
         names = self.format_names(len(imports), node.names)
-        self.results.append("{}{}".format(imports, names))
+        return "{}{}".format(imports, names)
 
     def visit_Import(self, node):
-        self.results.append("import {}".format(self.format_names(7, node.names)))
+        return "import {}".format(self.format_names(7, node.names))
 
-    def get_result(self):
-        return '\n'.join(self.results)
+    def visit_Module(self, node):
+        return '\n'.join(self.visit(subnode) for subnode in node.body)
 
 
 class SortImports(NodeTransformer):
@@ -97,9 +94,7 @@ class SortImports(NodeTransformer):
 def main(source, deferred):
     parsed = parse(source)
     changed = SortImports(deferred=deferred).visit(parsed)
-    writer =  ImportWriter()
-    writer.visit(changed)
-    return writer.get_result()
+    return ImportWriter().visit(changed)
 
 
 if __name__ == "__main__":
