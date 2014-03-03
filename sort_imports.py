@@ -12,6 +12,10 @@ from ast import (
 import sys
 
 
+def is_magic_import(node):
+    return hasattr(node, "module") and node.module == "__future__"
+
+
 class ImportWriter(NodeVisitor):
 
     def format_name(self, name):
@@ -46,7 +50,16 @@ class ImportWriter(NodeVisitor):
         return "import {}".format(self.format_names(7, node.names))
 
     def visit_Module(self, node):
-        return '\n'.join(self.visit(subnode) for subnode in node.body)
+        current_sort_key = (True, 0, 0)
+        res = []
+        for subnode in node.body:
+            is_magic, level, defer_level, _ = subnode.sort_key
+            if (is_magic, level, defer_level) != current_sort_key:
+                if res:
+                    res.append("")
+                current_sort_key = (is_magic, level, defer_level)
+            res.append(self.visit(subnode))
+        return '\n'.join(res)
 
 
 class SortImports(NodeTransformer):
@@ -79,8 +92,10 @@ class SortImports(NodeTransformer):
                 level = node.level
             else:
                 level = 0
-            return level, defer_level, name
-        return sorted(imports, key=sort_key)
+            return not is_magic_import(node), level, defer_level, name
+        for node in imports:
+            node.sort_key = sort_key(node)
+        return sorted(imports, key=lambda node: node.sort_key)
 
     def visit_Module(self, node):
         imports = []

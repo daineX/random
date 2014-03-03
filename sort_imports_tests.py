@@ -16,9 +16,11 @@ import os as os_mod
 from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
 """
         expected_output = """from __future__ import absolute_import
+
 from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
 import os as os_mod
 import sys
+
 from ast import (
     Expr,
     Import,
@@ -28,8 +30,11 @@ from ast import (
     NodeVisitor,
     parse
 )
+
 from wsgiref.handlers import BaseCGIHandler, CGIHandler, SimpleHandler
+
 from spam import eggs
+
 from ..base import eggs, foobar, spam
 from .. import bla"""
         res = main(input_,
