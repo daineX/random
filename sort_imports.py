@@ -9,12 +9,21 @@ from ast import (
     NodeVisitor,
     parse
 )
+from itertools import groupby
 import sys
 
 
 def is_magic_import(node):
     return hasattr(node, "module") and node.module == "__future__"
 
+def sort_names(names):
+    def sort_key(alias_obj):
+        return (alias_obj.name.lower(), alias_obj.asname)
+    sorted_names = sorted(names, key=sort_key)
+    res = []
+    for key, group in groupby(sorted_names, sort_key):
+        res.append(group.next())
+    return res
 
 class ImportWriter(NodeVisitor):
 
@@ -62,16 +71,50 @@ class ImportWriter(NodeVisitor):
         return '\n'.join(res)
 
 
+class RemoveDuplicates(NodeTransformer):
+
+    def __init__(self):
+        self.last_node = None
+
+    def visit_ImportFrom(self, node):
+        if self.last_node is not None:
+            if (node.module == self.last_node.module and
+                node.level == self.last_node.level):
+                    self.last_node.names = sort_names(self.last_node.names +
+                                                      node.names)
+                    return None
+            else:
+                res = self.last_node
+                self.last_node = node
+                return [res]
+        else:
+            self.last_node = node
+
+    def visit_Import(self, node):
+        if self.last_node:
+            res = [self.last_node, node]
+            self.last_node = None
+            return res
+        return [node]
+
+    def visit_Module(self, node):
+        new_body = []
+        for subnode in node.body:
+            res = self.visit(subnode)
+            if res is not None:
+                new_body.extend(res)
+        if self.last_node is not None:
+            new_body.append(self.last_node)
+        return Module(body=new_body)
+
+
 class SortImports(NodeTransformer):
 
     def __init__(self, deferred=None):
         self.deferred = deferred or []
 
-    def sort_names(self, names):
-        return sorted(names, key=lambda x: x.name.lower())
-
     def sort_names_for_node(self, node):
-        node.names = self.sort_names(node.names)
+        node.names = sort_names(node.names)
         return node
 
     visit_Import = sort_names_for_node
@@ -88,7 +131,7 @@ class SortImports(NodeTransformer):
                         break
                 name = node.module.lower()
             else:
-                name = self.sort_names(node.names)[0].name
+                name = sort_names(node.names)[0].name
             if hasattr(node, "level"):
                 level = node.level
             else:
@@ -110,6 +153,7 @@ class SortImports(NodeTransformer):
 def main(source, deferred):
     parsed = parse(source)
     changed = SortImports(deferred=deferred).visit(parsed)
+    changed = RemoveDuplicates().visit(changed)
     return ImportWriter().visit(changed)
 
 

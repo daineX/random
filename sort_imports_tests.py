@@ -16,6 +16,7 @@ import os as os_mod
 from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
 from aster import parse
 from ast.blarg import foo
+from ast import nop
 """
         expected_output = """from __future__ import absolute_import
 
@@ -31,6 +32,7 @@ from ast import (
     Module,
     NodeTransformer,
     NodeVisitor,
+    nop,
     parse
 )
 from ast.blarg import foo
@@ -43,4 +45,5 @@ from ..base import eggs, foobar, spam
 from .. import bla"""
         res = main(input_,
                    ["ast", "wsgiref", "spam"])
+        print res, expected_output
         self.assertEqual(expected_output, res)
