@@ -82,7 +82,8 @@ class SortImports(NodeTransformer):
             defer_level = 0
             if hasattr(node, "module") and node.module:
                 for index, module_name in enumerate(self.deferred):
-                    if node.module.startswith(module_name):
+                    if (node.module == module_name or
+                        node.module.startswith(module_name + ".")):
                         defer_level = index + 1
                         break
                 name = node.module.lower()

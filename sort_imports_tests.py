@@ -14,9 +14,12 @@ from ..base import spam, eggs, foobar
 from .. import bla
 import os as os_mod
 from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
+from aster import parse
+from ast.blarg import foo
 """
         expected_output = """from __future__ import absolute_import
 
+from aster import parse
 from bla import thisisareallylongimportedfunctionthatmightneedsomeindentationye
 import os as os_mod
 import sys
@@ -30,6 +33,7 @@ from ast import (
     NodeVisitor,
     parse
 )
+from ast.blarg import foo
 
 from wsgiref.handlers import BaseCGIHandler, CGIHandler, SimpleHandler
 
