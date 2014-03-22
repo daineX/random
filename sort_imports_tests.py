@@ -43,7 +43,6 @@ from spam import eggs
 
 from ..base import eggs, foobar, spam
 from .. import bla"""
-        res = main(input_,
-                   ["ast", "wsgiref", "spam"])
+        res = main(input_, ["ast", "wsgiref", "spam"])
         print res, expected_output
         self.assertEqual(expected_output, res)
