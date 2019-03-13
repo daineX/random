@@ -33,7 +33,7 @@ from ast import (
     NodeTransformer,
     NodeVisitor,
     nop,
-    parse
+    parse,
 )
 from ast.blarg import foo
 
