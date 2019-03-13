@@ -1,14 +1,7 @@
 #!/usr/bin/env python
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
-from ast import (
-    Import,
-    ImportFrom,
-    Module,
-    NodeTransformer,
-    NodeVisitor,
-    parse
-)
+from ast import Import, ImportFrom, Module, NodeTransformer, NodeVisitor, parse
 from itertools import groupby
 import sys
 
@@ -22,7 +15,7 @@ def sort_names(names):
     sorted_names = sorted(names, key=sort_key)
     res = []
     for key, group in groupby(sorted_names, sort_key):
-        res.append(group.next())
+        res.append(next(group))
     return res
 
 class ImportWriter(NodeVisitor):
@@ -38,7 +31,7 @@ class ImportWriter(NodeVisitor):
 
     def format_names_multiple_lines(self, formatted_names):
         names_lines = ",\n".join("    {}".format(name) for name in formatted_names)
-        return "(\n{}\n)".format(names_lines)
+        return "(\n{},\n)".format(names_lines)
 
     def format_names(self, initial_length, names):
         formatted_names = [self.format_name(name) for name in names]
