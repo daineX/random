@@ -65,8 +65,8 @@ def main(folder, base_url, *args):
                 return
             else:
                 project = pep503_normalize_name(self.path.strip("/"))
+                self.start_response()
                 if project in releases:
-                    self.start_response()
                     self.wfile.write(html5.format("".join('<a href="{0}/{1}">{1}</a><br>'.format(base_url, release)
                                                   for release in releases[project])))
                     return
